@@ -128,8 +128,8 @@
 
         /* 2. THE BEACON (PIN) */
         .map-pin {
-            width: 80px;
-            height: 80px;
+            width: 40px;
+            height: 40px;
             z-index: 20;
             display: flex;
             align-items: center;
@@ -138,9 +138,7 @@
         }
 
         .pin-icon {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
+            font-size: 24px;
             filter: drop-shadow(0 0 8px var(--neon-green));
             animation: pulse 3s infinite ease-in-out;
         }
@@ -196,38 +194,35 @@
         }
 
         .stat-count {
-            font-size: 14px;
+            font-size: 32px;
             font-weight: 700;
-            line-height: 1.4;
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            display: block;
-            margin-top: 8px;
-            color: var(--neon-green);
+            line-height: 1;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
-            opacity: 0.7;
-            margin-bottom: 0;
+            opacity: 0.8;
+            margin-bottom: 12px;
             display: block;
         }
 
         .city-name {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            line-height: 1.2;
+            line-height: 1;
             margin: 0;
         }
 
         .country-name {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 400;
             opacity: 0.7;
-            margin-top: 2px;
+            margin-top: 4px;
             display: block;
         }
 
@@ -235,7 +230,7 @@
             font-family: "SF Mono", monospace;
             font-size: 10px;
             opacity: 0.5;
-            margin-top: 4px;
+            margin-top: 8px;
             display: block;
         }
 
@@ -287,18 +282,20 @@
             <!-- The Memory (Image Section) -->
             <div class="memory-card">
                 <!-- Using a moody atmospheric image -->
-                <img src="image/manga.png" class="memory-image" alt="Memory">
+                <img src="https://images.unsplash.com/photo-1555431189-0fabf2667795?q=80&w=400&auto=format&fit=crop"
+                    class="memory-image" alt="Memory">
             </div>
 
 
 
             <!-- The Stats (Bottom Right) -->
             <div class="stats-container">
-                <h1 class="city-name">MISSION DISTRICT</h1>
-                <span class="country-name">San Francisco</span>
-
-                <span class="stat-count">30,621 Memories</span>
+                <span class="stat-count">30621 Memories</span>
                 <span class="stat-label">from 421 people</span>
+
+                <h1 class="city-name">SAN FRANCISCO</h1>
+                <span class="country-name">United States of America</span>
+                <span class="coordinates">37° 47' N, 122° 25' W</span>
             </div>
 
         </div>
@@ -326,7 +323,7 @@
         // We reuse the structure of the .map-pin from the HTML
         const pinHtml = `
             <div class="map-pin">
-                <img src="image/B2.png" class="pin-icon" alt="Beacon">
+                <div class="pin-icon">📦</div>
                 <div class="pin-avatars">
                     <div class="mini-avatar" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=A')"></div>
                     <div class="mini-avatar" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=B')"></div>
@@ -338,8 +335,8 @@
         const customIcon = L.divIcon({
             className: 'custom-pin-container', // Custom class to avoid default styles
             html: pinHtml,
-            iconSize: [80, 80],   // Size of the icon
-            iconAnchor: [40, 40]  // Anchor point (center of the icon)
+            iconSize: [40, 40],   // Size of the icon
+            iconAnchor: [20, 20]  // Anchor point (center of the icon)
         });
 
         // 3. Add the marker to the map
