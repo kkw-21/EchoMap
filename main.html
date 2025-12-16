@@ -151,6 +151,7 @@
             left: 30px;
             top: 0;
             display: flex;
+            flex-direction: row;
         }
 
         .mini-avatar {
@@ -214,29 +215,39 @@
             display: block;
         }
 
-        .city-name {
-            font-size: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            line-height: 1.2;
-            margin: 0;
-        }
-
-        .country-name {
+        .city-context {
             font-size: 12px;
-            font-weight: 400;
-            opacity: 0.7;
-            margin-top: 2px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            margin-bottom: 2px;
             display: block;
         }
 
-        .coordinates {
-            font-family: "SF Mono", monospace;
-            font-size: 10px;
-            opacity: 0.5;
-            margin-top: 4px;
-            display: block;
+        .beacon-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .title-pin-icon {
+            width: 18px;
+            height: 18px;
+            color: var(--neon-green);
+            filter: drop-shadow(0 0 4px rgba(204, 255, 0, 0.4));
+        }
+
+        .beacon-name {
+            font-size: 26px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            margin: 0;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
         }
 
         /* Animation */
@@ -294,8 +305,15 @@
 
             <!-- The Stats (Bottom Right) -->
             <div class="stats-container">
-                <h1 class="city-name">MISSION DISTRICT</h1>
-                <span class="country-name">San Francisco</span>
+                <span class="city-context">SAN FRANCISCO</span>
+
+                <div class="beacon-title-row">
+                    <svg class="title-pin-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                    </svg>
+                    <h1 class="beacon-name">MISSION DISTRICT</h1>
+                </div>
 
                 <span class="stat-count">30,621 Memories</span>
                 <span class="stat-label">from 421 people</span>
@@ -305,25 +323,193 @@
     </div>
 
     <script>
-        // Initialize the map
-        // San Francisco coordinates: 37.7749, -122.4194
+        // --- CONFIGURATION ---
         const sfCoords = [37.7749, -122.4194];
+        const missionCoords = [37.7599, -122.4148]; // Mission District approx center
+
+        // Initialize the map
         const map = L.map('map', {
-            zoomControl: false, // Hide default zoom controls for cleaner UI
-            attributionControl: false // We'll add it back but styled or just keep it minimal
-        }).setView(sfCoords, 13);
+            zoomControl: false,
+            attributionControl: false,
+            zoomAnimation: true,
+            fadeAnimation: true,
+            markerZoomAnimation: true
+        }).setView(sfCoords, 12);
 
         // Add the dark mode tile layer
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 20
         }).addTo(map);
 
-        // --- DYNAMIC PIN LOGIC ---
+        // --- 1. THE STARS ENGINE (Luminous Breath) ---
+        function bakeGlowTexture(radius, color) {
+            const size = radius * 2;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
+            gradient.addColorStop(0, 'rgba(255, 255, 240, 0.9)');
+            gradient.addColorStop(0.15, 'rgba(204, 255, 0, 0.6)');
+            gradient.addColorStop(0.4, 'rgba(204, 255, 0, 0.15)');
+            gradient.addColorStop(1, 'rgba(204, 255, 0, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            return canvas;
+        }
 
-        // 1. Define the HTML for the custom marker icon
-        // We reuse the structure of the .map-pin from the HTML
+        // Generate "Memories" Data - Organic Tendrils
+        function generateOrganicMemories(clusters) {
+            const points = [];
+            clusters.forEach(cluster => {
+                const coreCount = Math.floor(cluster.count * 0.4);
+                for (let i = 0; i < coreCount; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = Math.random() * cluster.spread * 0.3;
+                    points.push({
+                        lat: cluster.lat + Math.sin(angle) * dist * 0.6,
+                        lng: cluster.lng + Math.cos(angle) * dist,
+                        phase: Math.random() * Math.PI * 2,
+                        speed: 0.2 + Math.random() * 0.5,
+                        sizeVar: 0.8 + Math.random() * 0.5
+                    });
+                }
+                const tendrilCount = 4 + Math.floor(Math.random() * 3);
+                const pointsPerTendril = Math.floor((cluster.count - coreCount) / tendrilCount);
+                for (let t = 0; t < tendrilCount; t++) {
+                    let tLat = cluster.lat;
+                    let tLng = cluster.lng;
+                    const streetAngle = Math.random() * Math.PI * 2;
+                    const stepSize = cluster.spread * 0.15;
+                    for (let p = 0; p < pointsPerTendril; p++) {
+                        tLat += Math.sin(streetAngle) * stepSize * (0.9 + Math.random() * 0.2);
+                        tLng += Math.cos(streetAngle) * stepSize * (0.9 + Math.random() * 0.2);
+                        const drift = stepSize * 0.4;
+                        const pLat = tLat + (Math.random() - 0.5) * drift;
+                        const pLng = tLng + (Math.random() - 0.5) * drift;
+                        points.push({
+                            lat: pLat,
+                            lng: pLng,
+                            phase: Math.random() * Math.PI * 2,
+                            speed: 0.2 + Math.random() * 0.5,
+                            sizeVar: 0.6 + Math.random() * 0.8
+                        });
+                    }
+                }
+            });
+            return points;
+        }
+
+        // Custom Leaflet Layer
+        L.StarFieldLayer = L.Layer.extend({
+            onAdd: function (map) {
+                this._map = map;
+                this._canvas = L.DomUtil.create('canvas', 'star-field-layer');
+                const size = map.getSize();
+                this._canvas.width = size.x;
+                this._canvas.height = size.y;
+
+                // Add to overlay pane
+                this.getPane().appendChild(this._canvas);
+
+                this._glowSprite = bakeGlowTexture(48, '#ccff00');
+
+                // Clusters
+                const clusters = [
+                    { lat: missionCoords[0], lng: missionCoords[1], count: 180, spread: 0.008 },
+                    { lat: 37.7609, lng: -122.4350, count: 60, spread: 0.006 },
+                    { lat: 37.780, lng: -122.405, count: 60, spread: 0.006 }
+                ];
+                this._points = generateOrganicMemories(clusters);
+
+                map.on('move', this._update, this);
+                map.on('zoom', this._update, this);
+                map.on('resize', this._resize, this);
+
+                this._animating = true;
+                this._animate();
+            },
+
+            onRemove: function (map) {
+                map.getPane().appendChild(this._canvas).remove();
+                map.off('move', this._update, this);
+                map.off('zoom', this._update, this);
+                map.off('resize', this._resize, this);
+                this._animating = false;
+            },
+
+            _resize: function () {
+                const size = this._map.getSize();
+                this._canvas.width = size.x;
+                this._canvas.height = size.y;
+            },
+
+            _update: function () {
+                // We handle updates in the render loop for sync
+            },
+
+            _animate: function () {
+                if (!this._animating) return;
+                this._render();
+                requestAnimationFrame(() => this._animate());
+            },
+
+            _render: function () {
+                const map = this._map;
+                const canvas = this._canvas;
+                const ctx = canvas.getContext('2d');
+                const zoom = map.getZoom();
+                const now = Date.now() / 1000;
+
+                // --- CRITICAL FIX FOR SYNC ---
+                // Reset canvas position to match viewport top-left
+                // map.containerPointToLayerPoint([0,0]) gives the Layer Coordinate of the screen's top-left.
+                // We move the canvas there.
+                const topLeft = map.containerPointToLayerPoint([0, 0]);
+                L.DomUtil.setPosition(canvas, topLeft);
+
+                // Clear using canvas width (viewport size)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.globalCompositeOperation = 'screen';
+
+                let baseRadius, globalAlphaMod;
+                if (zoom < 13) {
+                    baseRadius = 14; globalAlphaMod = 0.3;
+                } else if (zoom < 15) {
+                    const t = (zoom - 13) / 2;
+                    baseRadius = 14 - (t * 8);
+                    globalAlphaMod = 0.3 + (t * 0.3);
+                } else {
+                    baseRadius = 8; globalAlphaMod = 0.8;
+                }
+
+                this._points.forEach(p => {
+                    // latLngToContainerPoint gives coordinates relative to Viewport Top-Left [0,0]
+                    // Since we moved our canvas to Viewport Top-Left, these coords map 1:1 to Canvas coords!
+                    const point = map.latLngToContainerPoint([p.lat, p.lng]);
+
+                    // Render Culling
+                    if (point.x < -100 || point.x > canvas.width + 100 || point.y < -100 || point.y > canvas.height + 100) return;
+
+                    const breath = Math.sin(now * p.speed + p.phase);
+                    const sizeMod = (1 + (breath * 0.2)) * p.sizeVar;
+                    const opacityMod = 0.5 + (breath * 0.3);
+
+                    const currentRadius = baseRadius * sizeMod;
+                    const finalAlpha = globalAlphaMod * opacityMod;
+
+                    ctx.globalAlpha = finalAlpha;
+                    const size = currentRadius * 4;
+                    ctx.drawImage(this._glowSprite, point.x - size / 2, point.y - size / 2, size, size);
+                });
+            }
+        });
+
+        new L.StarFieldLayer().addTo(map);
+
+        // --- PIN & TETHER LOGIC ---
         const pinHtml = `
             <div class="map-pin">
                 <img src="image/B2.png" class="pin-icon" alt="Beacon">
@@ -333,64 +519,35 @@
                 </div>
             </div>
         `;
-
-        // 2. Create the custom Leaflet Icon
         const customIcon = L.divIcon({
-            className: 'custom-pin-container', // Custom class to avoid default styles
+            className: 'custom-pin-container',
             html: pinHtml,
-            iconSize: [80, 80],   // Size of the icon
-            iconAnchor: [40, 40]  // Anchor point (center of the icon)
+            iconSize: [80, 80],
+            iconAnchor: [40, 40]
         });
-
-        // 3. Add the marker to the map
-        const marker = L.marker(sfCoords, { icon: customIcon }).addTo(map);
-
-        // --- TETHER LINE LOGIC ---
+        const marker = L.marker(missionCoords, { icon: customIcon }).addTo(map);
 
         const lineElement = document.querySelector('.tether-line');
         const memoryCard = document.querySelector('.memory-card');
 
-        // This function updates the line coordinates
         function updateTether() {
-            // Get the static position of the Memory Card anchor point
-            // The card is at top: 100px, left: 40px, width: 160px, height: 200px.
-            // Bottom-Right corner is roughly at: x = 40+160 = 200, y = 100+200 = 300.
-            // We can calculate this dynamically to be robust:
-            const cardRect = memoryCard.getBoundingClientRect();
-            // We need coordinates relative to the .phone-frame (which has position: relative)
-            // But getBoundingClientRect is viewport relative.
-            // To simplify, since .phone-frame is the direct parent of the SVG and .memory-card is inside .ui-layer inside .phone-frame...
-            // Actually, .ui-layer is absolute. .memory-card is absolute.
-            // Since we know the CSS values are fixed (left: 40px, top: 100px...), we can just hardcode the anchor.
-            // Or use the element's offset properties if we want to be safe.
-
-            // Hardcoded anchor on card (Bottom-Right corner)
             const cardAnchorX = 40 + 160;
             const cardAnchorY = 100 + 200;
-
-            // Get the dynamic position of the Marker
-            // latLngToContainerPoint gives pixels relative to the map container (which fills .phone-frame)
             const pinPoint = map.latLngToContainerPoint(marker.getLatLng());
-
-            // Update the SVG Line
             lineElement.setAttribute('x1', cardAnchorX);
             lineElement.setAttribute('y1', cardAnchorY);
-
-            // The Pin Anchor is the center. We might want to connect to top-left or center.
-            // The original code was connecting to top-left of the pin box approx.
-            // Let's connect to the center of the pin for now as it looks cleaner with the dynamic move? 
-            // Or maybe a bit higher if it's a "pin". Let's try center first.
             lineElement.setAttribute('x2', pinPoint.x);
             lineElement.setAttribute('y2', pinPoint.y);
         }
 
-        // 4. Bind the update function to map events
         map.on('move', updateTether);
         map.on('zoom', updateTether);
         map.on('viewreset', updateTether);
-
-        // Initial update
         updateTether();
+
+        setTimeout(() => {
+            map.flyTo(missionCoords, 16, { animate: true, duration: 3 });
+        }, 1000);
 
     </script>
 </body>
