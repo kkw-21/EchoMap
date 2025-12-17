@@ -127,6 +127,41 @@
             opacity: 0.9;
         }
 
+        /* --- ATMOSPHERIC TIME STAMP --- */
+        .time-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            z-index: 25;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+
+        .time-icon {
+            width: 12px;
+            height: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+        }
+
+        .time-text {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
         /* 2. THE BEACON (PIN) */
         .map-pin {
             width: 80px;
@@ -565,6 +600,15 @@
 
             <!-- The Memory (Image Section) -->
             <div class="memory-card ui-element">
+                <!-- Atmospheric Time Stamp -->
+                <div class="time-badge">
+                    <svg class="time-icon" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.2-.04-.4-.06-.62-.06A9 9 0 0 0 12 3Z" />
+                    </svg>
+                    <span class="time-text">Late Night • 2h ago</span>
+                </div>
+
                 <!-- Using a moody atmospheric image -->
                 <img src="image/manga.png" class="memory-image" alt="Memory">
 
@@ -628,7 +672,6 @@
             document.getElementById('navMenu').classList.toggle('visible');
         }
     </script>
-
     <script>
         // --- CONFIGURATION ---
         const sfCoords = [37.7749, -122.4194];
